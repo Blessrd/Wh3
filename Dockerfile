@@ -1,35 +1,66 @@
 FROM php:8.2-apache
 
-RUN apt-get update && apt-get install -y \
-    git unzip zip curl libzip-dev nodejs npm libpq-dev \
-    libpng-dev libjpeg-dev libfreetype6-dev \
-    && docker-php-ext-install zip pdo pdo_mysql pdo_pgsql gd
-
-RUN echo "memory_limit = 512M" > /usr/local/etc/php/conf.d/memory-limit.ini
-
-RUN a2enmod rewrite
-
-COPY . /var/www/html
-
 WORKDIR /var/www/html
 
+# Dependencias del sistema y extensiones PHP
+RUN apt-get update && apt-get install -y \
+    git \
+    unzip \
+    zip \
+    curl \
+    libzip-dev \
+    libpq-dev \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install \
+        zip \
+        pdo \
+        pdo_mysql \
+        pdo_pgsql \
+        gd \
+    && rm -rf /var/lib/apt/lists/*
+
+# Configuración PHP
+RUN echo "memory_limit = 512M" > /usr/local/etc/php/conf.d/memory-limit.ini
+
+# Apache
+RUN a2enmod rewrite
+
+# Cambiar DocumentRoot de Apache a Laravel /public
+RUN sed -ri \
+    -e 's!/var/www/html!/var/www/html/public!g' \
+    /etc/apache2/sites-available/000-default.conf \
+    /etc/apache2/apache2.conf
+
+# Permitir .htaccess
+RUN sed -ri 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf
+
+# Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-RUN composer install --no-dev --optimize-autoloader
+# Copiar proyecto
+COPY . .
 
-RUN npm install
-RUN npm run build
+# Instalar dependencias Laravel
+RUN composer install \
+    --no-dev \
+    --no-interaction \
+    --prefer-dist \
+    --optimize-autoloader
 
-RUN chown -R www-data:www-data storage bootstrap/cache
+# Crear directorios necesarios
+RUN mkdir -p \
+    storage/framework/cache \
+    storage/framework/sessions \
+    storage/framework/views \
+    storage/logs \
+    bootstrap/cache
 
-ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
-
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
-RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+# Permisos
+RUN chown -R www-data:www-data \
+    storage \
+    bootstrap/cache
 
 EXPOSE 80
-
-COPY start.sh /start.sh
-RUN chmod +x /start.sh
-
-CMD ["/start.sh"]
