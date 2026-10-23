@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\ConciliacionController;
+use App\Http\Controllers\ConciliacionDespachosController;
 use App\Http\Controllers\DistribucionLotesController;
 use App\Http\Controllers\HorasExtrasController;
 use App\Http\Controllers\ProfileController;
@@ -39,6 +41,17 @@ Route::post('/kpi-cumplimiento-plan/exportar-pdf', [KpiCumplimientoPlanControlle
 Route::get('/materiales-911', [Materiales911Controller::class, 'index']);
 Route::post('/materiales-911/procesar', [Materiales911Controller::class, 'procesar']);
 Route::post('/materiales-911/exportar-pdf', [Materiales911Controller::class, 'exportarPdf']);
+
+Route::get('/conciliacion', [ConciliacionController::class, 'index']);
+Route::post('/conciliacion/procesar', [ConciliacionController::class, 'procesar']);
+
+Route::get('/conciliacion-despachos', [ConciliacionDespachosController::class, 'index']);
+Route::get('/conciliacion-despachos/cargar', [ConciliacionDespachosController::class, 'index']);
+Route::post('/conciliacion-despachos/cargar', [ConciliacionDespachosController::class, 'cargar']);
+Route::post('/conciliacion-despachos/validar', [ConciliacionDespachosController::class, 'validar']);
+Route::post('/conciliacion-despachos/ejecutar', [ConciliacionDespachosController::class, 'ejecutar']);
+Route::get('/conciliacion-despachos/exportar', [ConciliacionDespachosController::class, 'exportar']);
+Route::get('/conciliacion-despachos/limpiar', [ConciliacionDespachosController::class, 'limpiar']);
 
 Route::get('/planificador', [PlanificadorController::class, 'index']);
 Route::post('/planificador/procesar', [PlanificadorController::class, 'procesar']);

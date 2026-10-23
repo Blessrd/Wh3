@@ -85,6 +85,18 @@
                 Materiales 911
             </a>
 
+            <a href="/conciliacion"
+               class="nav-item {{ request()->is('conciliacion') ? 'active':'' }}">
+                <i class="fa-solid fa-scale-balanced"></i>
+                Conciliación
+            </a>
+
+            <a href="/conciliacion-despachos"
+               class="nav-item {{ request()->is('conciliacion-despachos*') ? 'active':'' }}">
+                <i class="fa-solid fa-clipboard-check"></i>
+                Conciliación Despachos
+            </a>
+
             <a href="/horas-extras"
                class="nav-item {{ request()->is('horas-extras*') ? 'active':'' }}">
                 <i class="fa-solid fa-clock"></i>
